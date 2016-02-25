@@ -3,13 +3,15 @@
 ##### python - variant tools    #####
 #####################################
 
-## vtools project set-up ## 
+## vtools project set-up ##
 
 # initialize project and import vcf file
 vtools init proj
 vtools import afterQC_variants.vcf --build hg19 --var_info AA AC AN DP --geno_info DP_geno
 
 # import phenotypes
+# pheno.txt is a tab separated file: column 1 = sample_name ; column_2 =
+# phenotype N (controls) or C (cancerous cells)
 vtools phenotype --from_file pheno.txt
 
 # ANNOVAR annotations
@@ -35,7 +37,7 @@ vtools update variant --set 'af_ie=num_ie/(total_ie * 2.0)'
 
 ### fisher's exact
 # all variants
-vtools update variant --from_stat 'num_gt_case=#(GT)' 'num_var_alleles_case=#(alt)' --samples "phenotype = 2 " 
+vtools update variant --from_stat 'num_gt_case=#(GT)' 'num_var_alleles_case=#(alt)' --samples "phenotype = 2 "
 vtools update variant --from_stat 'num_gt_ctrl=#(GT)' 'num_var_alleles_ctrl=#(alt)' --samples "phenotype = 1 "
 vtools update variant --set "prop_pval=Fisher_exact(num_var_alleles_case, num_var_alleles_ctrl, 2*num_gt_case, 2*num_gt_ctrl)"
 
@@ -69,7 +71,7 @@ vtools select com_fvar "region_type = 'exonic' OR region_type = 'exonic;splicing
 # Fisher's exact test
 vtools output com_var \
 chr pos ref alt refGene.name2 refGene.cdsStart refGene.cdsEnd refGene.strand \
-mut_type region_type num_var_alleles_case num_var_alleles_ctrl het_ie hom_ie prop_pval \ 
+mut_type region_type num_var_alleles_case num_var_alleles_ctrl het_ie hom_ie prop_pval \
 --header CHR POS REF ALT GENE CDS_START CDS_END STRAND \
 MUT_TYPE REGION NUM_VAR_ALLELES_C NUM_VAR_ALLELES_N NUM_HTZ NUM_HMZ PVAL_FISHER > pval_CV_fisher.txt
 
@@ -100,5 +102,3 @@ vtools associate exo_var pheno --discard_samples "%(NA)>0.1" --discard_variants 
 
 # SKAT on exonic non-synonymous variants
 vtools associate exo_fvar pheno --discard_samples "%(NA)>0.1" --discard_variants "%(NA)>0.1" -m "SKAT --name skat disease" "SKAT --name skato disease --p_method optimal.adj" "SKAT --name skatLog disease --logistic_weights 0.07 150" "SKAT --name skatoLog disease --p_method optimal.adj --logistic_weights 0.07 150" --group_by refGene.name2 --to_db skat_exof -j8 > skat_exof.txt
-
-
